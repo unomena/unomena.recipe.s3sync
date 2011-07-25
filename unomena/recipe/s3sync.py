@@ -102,13 +102,15 @@ class S3Sync(Egg):
                         md5 = hashlib.md5(file(local_fqn).read())
                         if md5.hexdigest() == key.etag.strip('"'):
                             self.logger.info('skipped: %s' % local_fqn)
+                            key.set_acl('public-read')
                             continue
                         else:
                             self.logger.info('files differ: %s' % (local_fqn,))
-                    
-                    # create the new key and set contents from file
-                    key = Key(bucket)
-                    key.key = remote_fqn
+                    else:
+                        # create the new key and set contents from file
+                        key = Key(bucket)
+                        key.key = remote_fqn
+                        
                     key.set_contents_from_filename(local_fqn)
+                    key.set_acl('public-read')
                     self.logger.info('uploaded %s to %s:%s' % (local_fqn, self.aws_bucket_name, key.key))
-
