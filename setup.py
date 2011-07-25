@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='unomena.recipe.s3sync',
-    version='0.0.2',
+    version='0.0.3',
     description='Unomena S3 Sync buildout recipe',
     author='Unomena',
     author_email='dev@unomena.com',

@@ -25,12 +25,17 @@ class S3Sync(Egg):
         
         super(S3Sync, self).__init__(buildout, name, options)
         
+        # required parameters
         self.aws_access_key_id = self.options['aws_access_key_id']
         self.aws_secret_access_key = self.options['aws_secret_access_key']
         self.aws_bucket_name = self.options['aws_bucket_name']
         self.aws_bucket_location = self.options['aws_bucket_location']
         self.aws_bucket_root_path = self.options['aws_bucket_root_path']
-
+        
+        # optional parameters
+        self.default_acl = self.options.get('default_acl', 'public-read')
+        self.set_acl_on_skip = self.options.get('set_acl_on_skip', False)
+        
 
     def install(self):
         self._sync_files()
@@ -102,7 +107,8 @@ class S3Sync(Egg):
                         md5 = hashlib.md5(file(local_fqn).read())
                         if md5.hexdigest() == key.etag.strip('"'):
                             self.logger.info('skipped: %s' % local_fqn)
-                            key.set_acl('public-read')
+                            if self.set_acl_on_skip:
+                                key.set_acl(self.default_acl)
                             continue
                         else:
                             self.logger.info('files differ: %s' % (local_fqn,))
@@ -112,5 +118,5 @@ class S3Sync(Egg):
                         key.key = remote_fqn
                         
                     key.set_contents_from_filename(local_fqn)
-                    key.set_acl('public-read')
+                    key.set_acl(self.default_acl)
                     self.logger.info('uploaded %s to %s:%s' % (local_fqn, self.aws_bucket_name, key.key))
